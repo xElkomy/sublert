@@ -240,7 +240,7 @@ def adding_new_domain(q1): #adds a new domain to the monitoring list
                         for subdomain in unique_list:
                             print(colored(subdomain, "yellow"))
             else:
-                print(colored("\n[!] Unfortunately, we couldn't find any subdomain for {}".format(domain_to_monitor), "red"))
+                print(colored("\n[!] Added but unfortunately, we couldn't find any subdomain for {}".format(domain_to_monitor), "red"))
                 sys.exit(1)
     else: #checks if a domain is monitored but has no text file saved in ./output
                 try:
