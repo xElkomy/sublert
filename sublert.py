@@ -402,7 +402,7 @@ def dns_resolution(new_subdomains):  # Perform DNS resolution on retrieved subdo
 
 
 def at_channel():  # control discord @channel
-    return ("<!channel> " if at_channel_enabled else "")
+    return ("" if at_channel_enabled else "")
 
 
 # sending result to discord workplace
