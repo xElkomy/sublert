@@ -108,7 +108,7 @@ def discord(data):  # posting to discord
         data=json.dumps(discord_data),
         headers={'Content-Type': 'application/json'}
     )
-    if response.status_code != 200:
+    if response.status_code != 204:
         error = "Request to discord returned an error {}, the response is:\n{}".format(
             response.status_code, response.text)
         errorlog(error, enable_logging)
@@ -168,7 +168,7 @@ def errorlog(error, enable_logging):  # log errors and post them to discord chan
             data=json.dumps(discord_data),
             headers={'Content-Type': 'application/json'}
         )
-        if response.status_code != 200:
+        if response.status_code != 204:
             error = "Request to discord returned an error {}, the response is:\n{}".format(
                 response.status_code, response.text)
             errorlog(error, enable_logging)
