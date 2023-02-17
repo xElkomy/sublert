@@ -21,7 +21,7 @@ Sublert is a security and reconnaissance tool that was written in Python to leve
 
 ## Installation & Configuration
 
-Just open the `config.py` and change the webhooks url and run the app.
+Just open the `config.py` and change the webhook vars urls and run the app.
 
 ## Usage
 
