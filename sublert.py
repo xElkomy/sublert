@@ -13,6 +13,7 @@ import json
 import difflib
 import os
 import re
+import subprocess
 import psycopg2
 from tld import get_fld
 from tld.utils import update_tld_names
@@ -176,12 +177,24 @@ def errorlog(error, enable_logging):  # log errors and post them to discord chan
         pass
 
 
-class cert_database(object):  # Connecting to crt.sh public API to retrieve subdomains
+class cert_database(object):
     global enable_logging
 
     def lookup(self, domain, wildcard=True):
+        subdomains = set()
+
+        # Use subfinder to find subdomains
         try:
-            # connecting to crt.sh postgres database to retrieve subdomains.
+            command = ["subfinder", "-d", domain, "-all"]
+            subdomains_output = subprocess.check_output(
+                command, stderr=subprocess.STDOUT)
+            subdomains_output = subdomains_output.decode("utf-8").strip()
+            subdomains.update(subdomains_output.split('\n'))
+        except Exception as e:
+            print("An error occurred while running subfinder:", e)
+
+        # Connect to crt.sh API to retrieve additional subdomains
+        try:
             unique_domains = set()
             domain = domain.replace('%25.', '')
             conn = psycopg2.connect(
@@ -198,13 +211,12 @@ class cert_database(object):  # Connecting to crt.sh public API to retrieve subd
                             unique_domains.add(subdomain.lower())
                     except:
                         pass
-            return sorted(unique_domains)
+            subdomains.update(unique_domains)
         except:
             base_url = "https://crt.sh/?q={}&output=json"
             if wildcard:
                 domain = "%25.{}".format(domain)
                 url = base_url.format(domain)
-            subdomains = set()
             user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0'
             # times out after 30 seconds waiting (Mainly for large datasets)
             req = requests.get(
@@ -214,7 +226,15 @@ class cert_database(object):  # Connecting to crt.sh public API to retrieve subd
                 data = json.loads(content)
                 for subdomain in data:
                     subdomains.add(subdomain["name_value"].lower())
-                return sorted(subdomains)
+
+        # Filter duplicates and add to cursor
+        subdomains = set(subdomains)
+        for subdomain in subdomains:
+            cursor.execute(
+                "INSERT INTO certificate_identity (NAME_TYPE, NAME_VALUE, CERTIFICATE_ID) VALUES ('dNSName', %s, %s);",
+                (subdomain, None))
+
+        return sorted(subdomains)
 
 
 def queuing():  # using the queue for multithreading purposes
